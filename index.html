@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda React | Tarea 4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script src="js/services/AgendaService.js"></script>
+  <script type="text/babel">
+    function ContactForm({ onAddContact, isSubmitting }) {
+      const [nombre, setNombre] = React.useState('');
+      const [apellido, setApellido] = React.useState('');
+      const [telefono, setTelefono] = React.useState('');
+
+      const formatPhoneNumber = (value) => {
+        if (!value) return '';
+        const startsWithPlus = value.trim().startsWith('+');
+        let digits = value.replace(/\D/g, '');
+        if (!digits) return startsWithPlus ? '+' : '';
+        if (digits.length > 11) digits = digits.substring(0, 11);
+
+        if (digits.length === 11 || (startsWithPlus && digits.length > 3)) {
+          const country = digits.charAt(0);
+          const p1 = digits.substring(1, 4);
+          const p2 = digits.substring(4, 7);
+          const p3 = digits.substring(7);
+          let formatted = `+${country}`;
+          if (p1) formatted += `-${p1}`;
+          if (p2) formatted += `-${p2}`;
+          if (p3) formatted += `-${p3}`;
+          return formatted;
+        }
+
+        if (digits.length <= 3) {
+          return digits;
+        } else if (digits.length <= 6) {
+          return `${digits.substring(0, 3)}-${digits.substring(3)}`;
+        } else {
+          return `${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}`;
+        }
+      };
+
+      const handlePhoneChange = (e) => {
+        setTelefono(formatPhoneNumber(e.target.value));
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const success = await onAddContact({
+          nombre: nombre.trim(),
+          apellido: apellido.trim(),
+          telefono: telefono.trim()
+        });
+
+        if (success) {
+          setNombre('');
+          setApellido('');
+          setTelefono('');
+        }
+      };
+
+      return (
+        <aside className="form-panel">
+          <div className="panel-header">
+            <h2 className="panel-title">Nuevo Contacto</h2>
+            <p className="panel-description">Ingrese los datos para almacenar en la agenda remota.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="form-group">
+              <label htmlFor="inputNombre" className="form-label">Nombre</label>
+              <div className="input-wrapper">
+                <span className="input-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  id="inputNombre"
+                  className="form-input"
+                  placeholder="Ej. Sebastian"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="inputApellido" className="form-label">Apellido</label>
+              <div className="input-wrapper">
+                <span className="input-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  id="inputApellido"
+                  className="form-input"
+                  placeholder="Ej. Peguero"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="inputTelefono" className="form-label">Teléfono</label>
+              <div className="input-wrapper">
+                <span className="input-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                  </svg>
+                </span>
+                <input
+                  type="tel"
+                  id="inputTelefono"
+                  className="form-input"
+                  placeholder="Ej. 829-302-0445"
+                  value={telefono}
+                  onChange={handlePhoneChange}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <React.Fragment>
+                  <span className="btn-spinner"></span>
+                  <span>Guardando...</span>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Agregar Contacto</span>
+                </React.Fragment>
+              )}
+            </button>
+          </form>
+        </aside>
+      );
+    }
+
+    function ContactList({ contacts, isLoading, onRefresh }) {
+      const [searchTerm, setSearchTerm] = React.useState('');
+
+      const filteredContacts = React.useMemo(() => {
+        if (!searchTerm.trim()) {
+          return contacts;
+        }
+        const term = searchTerm.toLowerCase().trim();
+        return contacts.filter((c) => {
+          const n = (c.nombre || '').toLowerCase();
+          const a = (c.apellido || '').toLowerCase();
+          const t = (c.telefono || '').toLowerCase();
+          return n.includes(term) || a.includes(term) || t.includes(term);
+        });
+      }, [contacts, searchTerm]);
+
+      return (
+        <section className="directory-panel">
+          <div className="directory-controls">
+            <div className="search-box">
+              <span className="search-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
+              <input
+                type="search"
+                className="search-input"
+                placeholder="Buscar por nombre, apellido o teléfono..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="directory-actions">
+              <span className="badge-count">
+                <span>Total:</span>
+                <strong>{filteredContacts.length}</strong>
+              </span>
+              <button
+                type="button"
+                className="btn-icon"
+                title="Refrescar contactos"
+                onClick={() => {
+                  setSearchTerm('');
+                  onRefresh();
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="loading-state">
+              <div className="spinner-large"></div>
+              <p>Cargando contactos desde la agenda remota...</p>
+            </div>
+          ) : filteredContacts.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+              </div>
+              <p>No se encontraron contactos en la agenda.</p>
+            </div>
+          ) : (
+            <div className="contacts-grid">
+              {filteredContacts.map((c, index) => {
+                const nom = (c.nombre || '').trim();
+                const ape = (c.apellido || '').trim();
+                const tel = (c.telefono || '').trim();
+                const inicialNom = nom ? nom.charAt(0).toUpperCase() : '?';
+                const inicialApe = ape ? ape.charAt(0).toUpperCase() : '';
+                const cleanPhone = tel.replace(/\s+/g, '');
+
+                return (
+                  <article key={index} className="contact-card">
+                    <div className="contact-avatar">
+                      {inicialNom}{inicialApe}
+                    </div>
+                    <div className="contact-info">
+                      <h3 className="contact-name">{nom} {ape}</h3>
+                      <a href={`tel:${cleanPhone}`} className="contact-phone">
+                        <span className="phone-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                          </svg>
+                        </span>
+                        <span>{tel || 'Sin teléfono'}</span>
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    function App() {
+      const [contacts, setContacts] = React.useState([]);
+      const [isLoading, setIsLoading] = React.useState(true);
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
+      const [toast, setToast] = React.useState({ show: false, message: '', type: 'success' });
+
+      const agendaService = React.useMemo(() => new AgendaService(), []);
+
+      const showToast = React.useCallback((message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => {
+          setToast({ show: false, message: '', type: 'success' });
+        }, 3500);
+      }, []);
+
+      const fetchContacts = React.useCallback(async () => {
+        setIsLoading(true);
+        try {
+          const data = await agendaService.obtenerContactos();
+          setContacts(data);
+        } catch (err) {
+          showToast(err.message || 'Error al obtener los contactos.', 'error');
+        } finally {
+          setIsLoading(false);
+        }
+      }, [agendaService, showToast]);
+
+      React.useEffect(() => {
+        fetchContacts();
+      }, [fetchContacts]);
+
+      const handleAddContact = async ({ nombre, apellido, telefono }) => {
+        if (!nombre) {
+          showToast('El campo "Nombre" es obligatorio.', 'error');
+          return false;
+        }
+        if (!apellido) {
+          showToast('El campo "Apellido" es obligatorio.', 'error');
+          return false;
+        }
+        if (!telefono) {
+          showToast('El campo "Teléfono" es obligatorio.', 'error');
+          return false;
+        }
+
+        setIsSubmitting(true);
+        try {
+          await agendaService.guardarContacto({ nombre, apellido, telefono });
+          showToast('¡Contacto registrado exitosamente!', 'success');
+          await fetchContacts();
+          return true;
+        } catch (err) {
+          showToast(err.message || 'No fue posible registrar el contacto.', 'error');
+          return false;
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+
+      return (
+        <React.Fragment>
+          <header className="site-header">
+            <div className="header-container">
+              <div className="header-brand">
+                <div className="brand-icon">
+                  <img src="jojo-logo.jpg" alt="Logo de JoJo's" className="brand-img" />
+                </div>
+                <div className="brand-text">
+                  <h1>Agenda React</h1>
+                  <p>Programación Web · Tarea 4</p>
+                </div>
+              </div>
+
+              <div className="header-meta">
+                <span className="badge-layer">
+                  <span className="badge-pulse"></span>
+                  <span>Conectado a la lista de contactos</span>
+                </span>
+              </div>
+            </div>
+          </header>
+
+          <main className="main-content">
+            <div className="dashboard-layout">
+              <ContactForm
+                onAddContact={handleAddContact}
+                isSubmitting={isSubmitting}
+              />
+              <ContactList
+                contacts={contacts}
+                isLoading={isLoading}
+                onRefresh={fetchContacts}
+              />
+            </div>
+          </main>
+
+          <footer className="site-footer">
+            <p>&copy; 2026 · Sebastian Peguero · Tarea 4: Agenda React (8 puntos) · Programación Web</p>
+          </footer>
+
+          <div className={`toast-notification ${toast.show ? 'show' : ''} ${toast.type}`}>
+            <span>{toast.message}</span>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+</body>
+</html>
